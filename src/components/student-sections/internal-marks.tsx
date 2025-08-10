@@ -1,183 +1,110 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card'
 import { Progress } from '../../ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
-import { FileText, TrendingUp, Award, AlertCircle, Upload, Calculator, Target, BookOpen, BarChart3 } from "lucide-react"
+import { Badge } from '../../ui/badge'
+import { FileText, TrendingUp, Award, Upload, Calculator,BookOpen, } from "lucide-react"
 import { getInternalMarksEnhanced } from '../../lib/student-data'
-
+import type { InternalAssessmentData } from '../../lib/student-data'
 interface InternalMarksProps {
   registrationNumber: string
 }
 
 export default function InternalMarks({ registrationNumber }: InternalMarksProps) {
-  const internalData = getInternalMarksEnhanced(registrationNumber)
-  const finalAverage =
-    internalData.subjects.reduce((acc : any, subject : any ) => acc + subject.finalMarks, 0) / internalData.subjects.length
+  const [, setSelectedSubject] = useState<string | null>(null)
+  const internalData: InternalAssessmentData = getInternalMarksEnhanced(registrationNumber)
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <motion.div
-                className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg"
-                animate={{
-                  boxShadow: [
-                    "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    "0 10px 15px -3px rgba(59, 130, 246, 0.4)",
-                    "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-              >
-                <FileText className="h-6 w-6 text-white" />
-              </motion.div>
-              Internal Assessment
-            </h1>
-            <p className="text-slate-600 mt-1">Upload-wise test scores and continuous assessment marks</p>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">{finalAverage.toFixed(1)}/50</div>
-            <div className="text-sm text-slate-500">Final Average</div>
-          </div>
-        </div>
+        <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0">
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold">Internal Assessment Marks</CardTitle>
+                <CardDescription className="text-purple-100">
+                  Comprehensive view of your internal assessment performance
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
       </motion.div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-800">{internalData.subjects.length}</div>
-                  <div className="text-sm text-slate-600">Total Subjects</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-50">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-800">
-                    {internalData.subjects.filter((s : any) => s.finalMarks >= 40).length}
-                  </div>
-                  <div className="text-sm text-slate-600">Above 40/50</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-50">
-                  <Award className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-800">
-                    {Math.max(...internalData.subjects.map((s : any) => s.finalMarks)).toFixed(1)}
-                  </div>
-                  <div className="text-sm text-slate-600">Highest Score</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Card className="hover:shadow-lg transition-all duration-300">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-red-50">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-slate-800">
-                    {internalData.subjects.filter((s : any) => s.finalMarks < 30).length}
-                  </div>
-                  <div className="text-sm text-slate-600">Below 30/50</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Calculation Info Card */}
+      {/* Calculation Explanation */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-blue-100 text-blue-600">
-                <Calculator className="h-6 w-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-blue-900 mb-2">Assessment Calculation Method</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
-                  <div className="space-y-2">
-                    <p>
-                      <strong>Each Upload (per subject):</strong>
-                    </p>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Concept Test: 30 marks</li>
-                      <li>• CAT: 60 marks</li>
-                      <li>
-                        • <strong>Test Total: 90 marks → converted to 75 marks</strong>
-                      </li>
-                      <li>• Assignment: 25 marks (added as is)</li>
-                      <li>
-                        • <strong>Upload Total: 100 marks → converted to 25 marks</strong>
-                      </li>
-                    </ul>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Calculator className="w-5 h-5 text-blue-600" />
+              <CardTitle className="text-lg">Assessment Calculation Method</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-800">Per Upload Calculation:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Concept Test:</span>
+                    <span className="font-medium">Out of 30</span>
                   </div>
-                  <div className="space-y-2">
-                    <p>
-                      <strong>Final Calculation:</strong>
-                    </p>
-                    <ul className="space-y-1 ml-4">
-                      <li>• Upload 1: 25 marks</li>
-                      <li>• Upload 2: 25 marks</li>
-                      <li>
-                        • <strong>Final Internal: 50 marks</strong>
-                      </li>
-                    </ul>
+                  <div className="flex justify-between">
+                    <span>CAT (Continuous Assessment):</span>
+                    <span className="font-medium">Out of 60</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span>Test Total:</span>
+                    <span className="font-medium">Out of 90</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Test Converted:</span>
+                    <span className="font-medium">Out of 75 (90 → 75)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Assignment:</span>
+                    <span className="font-medium">Out of 25</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 font-semibold">
+                    <span>Upload Total:</span>
+                    <span>Out of 100</span>
+                  </div>
+                  <div className="flex justify-between text-blue-600 font-semibold">
+                    <span>Final Marks per Upload:</span>
+                    <span>Out of 25 (100 → 25)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-800">Final Assessment:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Upload 1 Final:</span>
+                    <span className="font-medium">Out of 25</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Upload 2 Final:</span>
+                    <span className="font-medium">Out of 25</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 font-semibold text-green-600">
+                    <span>Total Internal Assessment:</span>
+                    <span>Out of 50</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="text-sm text-blue-800">
+                    <strong>Overall Average:</strong> {internalData.overallAverage.toFixed(2)}/50
                   </div>
                 </div>
               </div>
@@ -186,232 +113,294 @@ export default function InternalMarks({ registrationNumber }: InternalMarksProps
         </Card>
       </motion.div>
 
-      {/* Tabs for Upload 1 and Upload 2 */}
-      <Tabs defaultValue="upload1" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-xl">
-          <TabsTrigger value="upload1" className="flex items-center gap-2 rounded-lg">
-            <Upload className="h-4 w-4" />
-            Upload 1
-          </TabsTrigger>
-          <TabsTrigger value="upload2" className="flex items-center gap-2 rounded-lg">
-            <Upload className="h-4 w-4" />
-            Upload 2
-          </TabsTrigger>
-          <TabsTrigger value="final" className="flex items-center gap-2 rounded-lg">
-            <BarChart3 className="h-4 w-4" />
-            Final Results
-          </TabsTrigger>
-        </TabsList>
+      {/* Main Assessment Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview" className="flex items-center space-x-2">
+              <TrendingUp className="w-4 h-4" />
+              <span>Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="detailed" className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Detailed View</span>
+            </TabsTrigger>
+            <TabsTrigger value="uploads" className="flex items-center space-x-2">
+              <Upload className="w-4 h-4" />
+              <span>Upload Wise</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="upload1" className="space-y-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5 text-blue-600" />
-                  Upload 1 Assessment Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {internalData.subjects.map((subject : any, index : any) => (
-                    <motion.div
-                      key={subject.subjectCode}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className="p-6 rounded-xl border hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-white to-slate-50"
-                    >
-                      <div className="flex items-center justify-between mb-4">
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {internalData.subjects.map((subject, index) => (
+                <motion.div
+                  key={subject.subjectCode}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <Card
+                    className="hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => setSelectedSubject(subject.subjectCode)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="font-semibold text-lg text-slate-800">{subject.subject}</h3>
-                          <p className="text-sm text-slate-600">{subject.subjectCode}</p>
+                          <CardTitle className="text-lg font-semibold">{subject.subject}</CardTitle>
+                          <CardDescription className="text-sm">{subject.subjectCode}</CardDescription>
+                        </div>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {subject.finalMarks.toFixed(1)}/50
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Final Marks</span>
+                          <span className="font-semibold">{subject.finalMarks.toFixed(2)}/50</span>
+                        </div>
+                        <Progress value={(subject.finalMarks / 50) * 100} className="h-2" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="detailed" className="space-y-6">
+            <div className="space-y-4">
+              {internalData.subjects.map((subject, index) => (
+                <motion.div
+                  key={subject.subjectCode}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-xl">{subject.subject}</CardTitle>
+                          <CardDescription>{subject.subjectCode}</CardDescription>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {subject.upload1.finalMarks.toFixed(1)}/25
-                          </div>
+                          <div className="text-2xl font-bold text-blue-600">{subject.finalMarks.toFixed(2)}</div>
+                          <div className="text-sm text-gray-500">out of 50</div>
                         </div>
                       </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        {/* Upload 1 */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-green-600 flex items-center space-x-2">
+                            <Upload className="w-4 h-4" />
+                            <span>Upload 1</span>
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Concept Test:</span>
+                              <span>{subject.upload1.conceptTest}/30</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>CAT:</span>
+                              <span>{subject.upload1.cat}/60</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span>Test Total:</span>
+                              <span>{subject.upload1.testTotal}/90</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Test Converted:</span>
+                              <span>{subject.upload1.testConverted.toFixed(2)}/75</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Assignment:</span>
+                              <span>{subject.upload1.assignment}/25</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span>Upload Total:</span>
+                              <span>{subject.upload1.uploadTotal.toFixed(2)}/100</span>
+                            </div>
+                            <div className="flex justify-between font-semibold text-green-600 border-t pt-2">
+                              <span>Final Marks:</span>
+                              <span>{subject.upload1.finalMarks.toFixed(2)}/25</span>
+                            </div>
+                          </div>
+                        </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-                        <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="text-lg font-semibold text-green-600">{subject.upload1.conceptTest}/30</div>
-                          <div className="text-xs text-green-600 font-medium">Concept Test 1</div>
-                        </div>
-                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-lg font-semibold text-blue-600">{subject.upload1.cat}/60</div>
-                          <div className="text-xs text-blue-600 font-medium">CAT 1</div>
-                        </div>
-                        <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
-                          <div className="text-lg font-semibold text-orange-600">
-                            {subject.upload1.testConverted.toFixed(1)}/75
+                        {/* Upload 2 */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-purple-600 flex items-center space-x-2">
+                            <Upload className="w-4 h-4" />
+                            <span>Upload 2</span>
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Concept Test:</span>
+                              <span>{subject.upload2.conceptTest}/30</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>CAT:</span>
+                              <span>{subject.upload2.cat}/60</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span>Test Total:</span>
+                              <span>{subject.upload2.testTotal}/90</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Test Converted:</span>
+                              <span>{subject.upload2.testConverted.toFixed(2)}/75</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Assignment:</span>
+                              <span>{subject.upload2.assignment}/25</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                              <span>Upload Total:</span>
+                              <span>{subject.upload2.uploadTotal.toFixed(2)}/100</span>
+                            </div>
+                            <div className="flex justify-between font-semibold text-purple-600 border-t pt-2">
+                              <span>Final Marks:</span>
+                              <span>{subject.upload2.finalMarks.toFixed(2)}/25</span>
+                            </div>
                           </div>
-                          <div className="text-xs text-orange-600 font-medium">Test Total</div>
-                        </div>
-                        <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <div className="text-lg font-semibold text-purple-600">{subject.upload1.assignment}/25</div>
-                          <div className="text-xs text-purple-600 font-medium">Assignment 1</div>
-                        </div>
-                        <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                          <div className="text-lg font-semibold text-indigo-600">
-                            {subject.upload1.uploadTotal.toFixed(1)}/100
-                          </div>
-                          <div className="text-xs text-indigo-600 font-medium">Upload Total</div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
 
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Upload 1 Progress</span>
-                          <span className="text-slate-800 font-medium">{subject.upload1.finalMarks.toFixed(1)}/25</span>
-                        </div>
-                        <Progress value={(subject.upload1.finalMarks / 25) * 100} className="h-3" />
-                      </div>
+          <TabsContent value="uploads" className="space-y-6">
+            <Tabs defaultValue="upload1" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upload1">Upload 1</TabsTrigger>
+                <TabsTrigger value="upload2">Upload 2</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="upload1" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {internalData.subjects.map((subject, index) => (
+                    <motion.div
+                      key={`upload1-${subject.subjectCode}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <Card className="border-green-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">{subject.subject}</CardTitle>
+                          <CardDescription>{subject.subjectCode}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Concept Test:</span>
+                              <span className="font-medium">{subject.upload1.conceptTest}/30</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>CAT:</span>
+                              <span className="font-medium">{subject.upload1.cat}/60</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Assignment:</span>
+                              <span className="font-medium">{subject.upload1.assignment}/25</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 font-semibold text-green-600">
+                              <span>Final:</span>
+                              <span>{subject.upload1.finalMarks.toFixed(2)}/25</span>
+                            </div>
+                          </div>
+                          <Progress value={(subject.upload1.finalMarks / 25) * 100} className="mt-3 h-2" />
+                        </CardContent>
+                      </Card>
                     </motion.div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
+              </TabsContent>
 
-        <TabsContent value="upload2" className="space-y-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5 text-green-600" />
-                  Upload 2 Assessment Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {internalData.subjects.map((subject : any, index : any) => (
+              <TabsContent value="upload2" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {internalData.subjects.map((subject, index) => (
                     <motion.div
-                      key={subject.subjectCode}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      key={`upload2-${subject.subjectCode}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className="p-6 rounded-xl border hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-white to-slate-50"
                     >
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="font-semibold text-lg text-slate-800">{subject.subject}</h3>
-                          <p className="text-sm text-slate-600">{subject.subjectCode}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-green-600">
-                            {subject.upload2.finalMarks.toFixed(1)}/25
+                      <Card className="border-purple-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">{subject.subject}</CardTitle>
+                          <CardDescription>{subject.subjectCode}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Concept Test:</span>
+                              <span className="font-medium">{subject.upload2.conceptTest}/30</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>CAT:</span>
+                              <span className="font-medium">{subject.upload2.cat}/60</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Assignment:</span>
+                              <span className="font-medium">{subject.upload2.assignment}/25</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2 font-semibold text-purple-600">
+                              <span>Final:</span>
+                              <span>{subject.upload2.finalMarks.toFixed(2)}/25</span>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-                        <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="text-lg font-semibold text-green-600">{subject.upload2.conceptTest}/30</div>
-                          <div className="text-xs text-green-600 font-medium">Concept Test 2</div>
-                        </div>
-                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-lg font-semibold text-blue-600">{subject.upload2.cat}/60</div>
-                          <div className="text-xs text-blue-600 font-medium">CAT 2</div>
-                        </div>
-                        <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
-                          <div className="text-lg font-semibold text-orange-600">
-                            {subject.upload2.testConverted.toFixed(1)}/75
-                          </div>
-                          <div className="text-xs text-orange-600 font-medium">Test Total</div>
-                        </div>
-                        <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <div className="text-lg font-semibold text-purple-600">{subject.upload2.assignment}/25</div>
-                          <div className="text-xs text-purple-600 font-medium">Assignment 2</div>
-                        </div>
-                        <div className="text-center p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                          <div className="text-lg font-semibold text-indigo-600">
-                            {subject.upload2.uploadTotal.toFixed(1)}/100
-                          </div>
-                          <div className="text-xs text-indigo-600 font-medium">Upload Total</div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Upload 2 Progress</span>
-                          <span className="text-slate-800 font-medium">{subject.upload2.finalMarks.toFixed(1)}/25</span>
-                        </div>
-                        <Progress value={(subject.upload2.finalMarks / 25) * 100} className="h-3" />
-                      </div>
+                          <Progress value={(subject.upload2.finalMarks / 25) * 100} className="mt-3 h-2" />
+                        </CardContent>
+                      </Card>
                     </motion.div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+        </Tabs>
+      </motion.div>
 
-        <TabsContent value="final" className="space-y-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-purple-600" />
-                  Final Internal Assessment Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {internalData.subjects.map((subject : any , index : any) => (
-                    <motion.div
-                      key={subject.subjectCode}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className="p-6 rounded-xl border hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-white to-purple-50"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="font-semibold text-lg text-slate-800">{subject.subject}</h3>
-                          <p className="text-sm text-slate-600">{subject.subjectCode}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-purple-600">{subject.finalMarks.toFixed(1)}/50</div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-xl font-semibold text-blue-600">
-                            {subject.upload1.finalMarks.toFixed(1)}
-                          </div>
-                          <div className="text-sm text-blue-600 font-medium">Upload 1</div>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="text-xl font-semibold text-green-600">
-                            {subject.upload2.finalMarks.toFixed(1)}
-                          </div>
-                          <div className="text-sm text-green-600 font-medium">Upload 2</div>
-                        </div>
-                        <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                          <div className="text-xl font-semibold text-purple-600">{subject.finalMarks.toFixed(1)}</div>
-                          <div className="text-sm text-purple-600 font-medium">Final Total</div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Overall Performance</span>
-                          <span className="text-slate-800 font-medium">{subject.finalMarks.toFixed(1)}/50</span>
-                        </div>
-                        <Progress value={(subject.finalMarks / 50) * 100} className="h-3" />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-      </Tabs>
+      {/* Summary Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Award className="w-5 h-5 text-blue-600" />
+              <CardTitle className="text-blue-800">Assessment Summary</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{internalData.subjects.length}</div>
+                <div className="text-sm text-gray-600">Total Subjects</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{internalData.overallAverage.toFixed(2)}</div>
+                <div className="text-sm text-gray-600">Average Marks (out of 50)</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }

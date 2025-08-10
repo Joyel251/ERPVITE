@@ -60,7 +60,6 @@ type ActiveSection =
   | "achievements"
   | "calendar"
   | "library"
-  | "courses"
   | "semester-marks"
   | "arrears"
   | "announcements"
@@ -132,15 +131,6 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
       notifications: 0,
       gradient: "from-indigo-500 to-indigo-600",
       hoverColor: "hover:bg-indigo-100",
-    },
-    {
-      id: "courses",
-      label: "Course Registration",
-      icon: GraduationCap,
-      category: "academic",
-      notifications: 0,
-      gradient: "from-cyan-500 to-cyan-600",
-      hoverColor: "hover:bg-cyan-100",
     },
     {
       id: "calendar",
@@ -217,8 +207,6 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
         return <AcademicCalendar />
       case "library":
         return <LibraryBooks registrationNumber={registrationNumber} />
-      // case "courses":
-      //   return <CourseList registrationNumber={registrationNumber} />
       case "semester-marks":
         return <SemesterMarks registrationNumber={registrationNumber} />
       case "arrears":
@@ -647,7 +635,6 @@ function Header({ student, activeSection }: { student: Student; activeSection: A
       achievements: "My Achievements",
       calendar: "Academic Calendar",
       library: "Library Services",
-      courses: "Course Registration",
       "semester-marks": "Semester Results",
       arrears: "Arrear Management",
       announcements: "College Announcements",

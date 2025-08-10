@@ -55,6 +55,7 @@ export interface Student {
   extraCurricularActivities: string
 }
 
+// Keep the old interface for backward compatibility
 export interface InternalMark {
   subject: string
   subjectCode: string
@@ -66,33 +67,26 @@ export interface InternalMark {
   percentage: number
 }
 
-// Enhanced internal assessment data interface
-export interface InternalAssessmentSubject {
+export interface UploadAssessment {
+  conceptTest: number // out of 30
+  cat: number // out of 60
+  testTotal: number // conceptTest + cat (out of 90)
+  testConverted: number // testTotal converted to 75
+  assignment: number // out of 25
+  uploadTotal: number // testConverted + assignment (out of 100)
+  finalMarks: number // uploadTotal converted to 25
+}
+
+export interface EnhancedInternalMark {
   subject: string
   subjectCode: string
-  upload1: {
-    conceptTest: number
-    cat: number
-    testTotal: number
-    testConverted: number
-    assignment: number
-    uploadTotal: number
-    finalMarks: number
-  }
-  upload2: {
-    conceptTest: number
-    cat: number
-    testTotal: number
-    testConverted: number
-    assignment: number
-    uploadTotal: number
-    finalMarks: number
-  }
-  finalMarks: number
+  upload1: UploadAssessment
+  upload2: UploadAssessment
+  finalMarks: number // upload1.finalMarks + upload2.finalMarks (out of 50)
 }
 
 export interface InternalAssessmentData {
-  subjects: InternalAssessmentSubject[]
+  subjects: EnhancedInternalMark[]
   overallAverage: number
 }
 
@@ -106,13 +100,13 @@ export interface AttendanceRecord {
 }
 
 export interface Achievement {
-  level: string
   id: string
   title: string
   description: string
   date: string
   category: "Academic" | "Sports" | "Cultural" | "Technical"
   certificate?: string
+  level?: string
 }
 
 export interface LibraryBook {
@@ -198,51 +192,294 @@ export interface AttendanceData {
   weeklySchedule: DayAttendance[]
 }
 
-// Centralized subject data to ensure consistency
-const SUBJECTS = [
-  { name: "Data Structures", code: "CS301" },
-  { name: "Database Management", code: "CS302" },
-  { name: "Computer Networks", code: "CS303" },
-  { name: "Operating Systems", code: "CS304" },
-  { name: "Software Engineering", code: "CS305" },
+// College-specific departments
+const DEPARTMENTS = [
+  "Computer Science and Engineering",
+  "Electronics and Communication Engineering",
+  "Electrical and Electronics Engineering",
+  "Artificial Intelligence and Data Science",
+  "Mechanical Engineering",
+  "Information Technology",
 ]
+
+// Department-specific subjects
+const SUBJECTS_BY_DEPT = {
+  "Computer Science and Engineering": [
+    { name: "Data Structures and Algorithms", code: "CS301" },
+    { name: "Database Management Systems", code: "CS302" },
+    { name: "Computer Networks", code: "CS303" },
+    { name: "Operating Systems", code: "CS304" },
+    { name: "Software Engineering", code: "CS305" },
+  ],
+  "Electronics and Communication Engineering": [
+    { name: "Digital Signal Processing", code: "EC301" },
+    { name: "Communication Systems", code: "EC302" },
+    { name: "Microprocessors", code: "EC303" },
+    { name: "VLSI Design", code: "EC304" },
+    { name: "Antenna Theory", code: "EC305" },
+  ],
+  "Electrical and Electronics Engineering": [
+    { name: "Power Systems", code: "EE301" },
+    { name: "Control Systems", code: "EE302" },
+    { name: "Electrical Machines", code: "EE303" },
+    { name: "Power Electronics", code: "EE304" },
+    { name: "Digital Electronics", code: "EE305" },
+  ],
+  "Artificial Intelligence and Data Science": [
+    { name: "Machine Learning", code: "AI301" },
+    { name: "Deep Learning", code: "AI302" },
+    { name: "Data Mining", code: "AI303" },
+    { name: "Natural Language Processing", code: "AI304" },
+    { name: "Computer Vision", code: "AI305" },
+  ],
+  "Mechanical Engineering": [
+    { name: "Thermodynamics", code: "ME301" },
+    { name: "Fluid Mechanics", code: "ME302" },
+    { name: "Machine Design", code: "ME303" },
+    { name: "Manufacturing Technology", code: "ME304" },
+    { name: "Heat Transfer", code: "ME305" },
+  ],
+  "Information Technology": [
+    { name: "Web Technologies", code: "IT301" },
+    { name: "Mobile Application Development", code: "IT302" },
+    { name: "Network Security", code: "IT303" },
+    { name: "Cloud Computing", code: "IT304" },
+    { name: "Data Analytics", code: "IT305" },
+  ],
+}
+
+// Enhanced data arrays for realistic generation with proper gender mapping
+const STUDENT_NAMES = [
+  { name: "Aarav Kumar", gender: "Male" }, // 0
+  { name: "Vivaan Singh", gender: "Male" }, // 1
+  { name: "Aditya Sharma", gender: "Male" }, // 2
+  { name: "Vihaan Gupta", gender: "Male" }, // 3
+  { name: "Arjun Patel", gender: "Male" }, // 4
+  { name: "Sai Krishna", gender: "Male" }, // 5
+  { name: "Reyansh Reddy", gender: "Male" }, // 6
+  { name: "Ayaan Khan", gender: "Male" }, // 7
+  { name: "Krishna Rao", gender: "Male" }, // 8
+  { name: "Ishaan Nair", gender: "Male" }, // 9
+  { name: "Ananya Iyer", gender: "Female" }, // 10
+  { name: "Diya Menon", gender: "Female" }, // 11
+  { name: "Saanvi Pillai", gender: "Female" }, // 12
+  { name: "Aadhya Nambiar", gender: "Female" }, // 13
+  { name: "Kavya Shetty", gender: "Female" }, // 14
+  { name: "Anaya Bhat", gender: "Female" }, // 15
+  { name: "Pari Kamath", gender: "Female" }, // 16
+  { name: "Myra Hegde", gender: "Female" }, // 17
+  { name: "Sara Amin", gender: "Female" }, // 18
+  { name: "Zara Dsouza", gender: "Female" }, // 19
+  { name: "Rohan Joshi", gender: "Male" }, // 20
+  { name: "Karan Mehta", gender: "Male" }, // 21
+  { name: "Aryan Desai", gender: "Male" }, // 22
+  { name: "Nikhil Agarwal", gender: "Male" }, // 23
+  { name: "Rahul Bansal", gender: "Male" }, // 24
+  { name: "Priya Sharma", gender: "Female" }, // 25
+  { name: "Sneha Reddy", gender: "Female" }, // 26
+  { name: "Divya Nair", gender: "Female" }, // 27
+  { name: "Meera Iyer", gender: "Female" }, // 28
+  { name: "Pooja Gupta", gender: "Female" }, // 29
+  { name: "Joyelimmanuel", gender: "Male" }, // 30
+  { name: "Ravi Chandran", gender: "Male" }, // 31
+  { name: "Deepika Rao", gender: "Female" }, // 32
+  { name: "Harish Kumar", gender: "Male" }, // 33
+  { name: "Lakshmi Priya", gender: "Female" }, // 34
+]
+
+const STATES_DATA = {
+  "Tamil Nadu": {
+    districts: ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy", "Vellore", "Tirunelveli"],
+    motherTongue: "Tamil",
+  },
+  Karnataka: {
+    districts: ["Bangalore", "Mysore", "Mangalore", "Hubli", "Belgaum", "Gulbarga"],
+    motherTongue: "Kannada",
+  },
+  "Andhra Pradesh": {
+    districts: ["Hyderabad", "Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool"],
+    motherTongue: "Telugu",
+  },
+  Kerala: {
+    districts: ["Kochi", "Thiruvananthapuram", "Kozhikode", "Thrissur", "Kollam", "Palakkad"],
+    motherTongue: "Malayalam",
+  },
+  Telangana: {
+    districts: ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Mahbubnagar"],
+    motherTongue: "Telugu",
+  },
+}
+
+// Helper function to generate consistent random values
+function generateConsistentRandom(seed: string, index: number, max: number): number {
+  const hash = seed.split("").reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0)
+    return a & a
+  }, 0)
+  return Math.abs((hash + index * 1234567) % max)
+}
+
+// Validation functions
+export function validateRegistrationNumber(regNumber: string): boolean {
+  // Must be exactly 12 digits and start with 3111
+  const regex = /^3111\d{8}$/
+  return regex.test(regNumber)
+}
+
+export function generatePassword(name: string, dateOfBirth: string): string {
+  // First 4 letters of name in caps + DDMMYY from date of birth
+  const namePrefix = name.replace(/\s+/g, "").substring(0, 4).toUpperCase()
+  const birthDate = new Date(dateOfBirth)
+  const day = String(birthDate.getDate()).padStart(2, "0")
+  const month = String(birthDate.getMonth() + 1).padStart(2, "0")
+  const year = String(birthDate.getFullYear()).slice(-2)
+
+  return `${namePrefix}${day}${month}${year}`
+}
+
+export function validateLogin(registrationNumber: string, password: string): boolean {
+  if (!validateRegistrationNumber(registrationNumber)) {
+    return false
+  }
+
+  const studentData = getStudentData(registrationNumber)
+  const expectedPassword = generatePassword(studentData.name, studentData.dateOfBirth)
+
+  console.log("Debug - Registration:", registrationNumber)
+  console.log("Debug - Student Name:", studentData.name)
+  console.log("Debug - Birth Date:", studentData.dateOfBirth)
+  console.log("Debug - Expected Password:", expectedPassword)
+  console.log("Debug - Entered Password:", password)
+
+  return password === expectedPassword
+}
 
 // Mock data generator based on registration number
 export function getStudentData(registrationNumber: string): Student {
-  const lastDigits = registrationNumber.slice(-2)
-  const studentNumber = Number.parseInt(lastDigits) || 1
+  // Extract the last 2 digits to determine which student
+  const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
 
-  const names = [
-    "Arjun Kumar",
-    "Priya Sharma",
-    "Rahul Patel",
-    "Sneha Reddy",
-    "Vikram Singh",
-    "Ananya Gupta",
-    "Karthik Raj",
-    "Divya Nair",
-    "Arun Krishnan",
-    "Meera Iyer",
-  ]
+  // Create a mapping for specific registration numbers to ensure correct data
+  const specificMappings: { [key: string]: { nameIndex: number; birthDate: string } } = {
+    "311123104001": { nameIndex: 0, birthDate: "2005-01-01" }, // Aarav Kumar
+    "311123104002": { nameIndex: 1, birthDate: "2005-02-02" }, // Vivaan Singh
+    "311123104003": { nameIndex: 2, birthDate: "2005-03-03" }, // Aditya Sharma
+    "311123104015": { nameIndex: 14, birthDate: "2005-03-15" }, // Kavya Shetty
+    "311123104031": { nameIndex: 30, birthDate: "2005-07-04" }, // Joyelimmanuel
+  }
 
-  const departments = ["Computer Science", "Electronics", "Mechanical", "Civil", "Electrical"]
-  const courses = ["B.E Computer Science", "B.E Electronics", "B.E Mechanical", "B.E Civil", "B.E Electrical"]
-  const communities = ["OC", "BC", "MBC", "SC", "ST"]
-  const subCastes = ["Vanniyar", "Thevar", "Naidu", "Chettiar", "Gounder", "Mudaliar", "Pillai", "Reddy"]
-  const religions = ["Hindu", "Christian", "Muslim", "Sikh", "Buddhist"]
-  const districts = ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy", "Vellore", "Tirunelveli"]
-  const states = ["Tamil Nadu", "Karnataka", "Andhra Pradesh", "Kerala", "Telangana"]
-  const genders = ["Male", "Female"]
-  const modes = ["Regular", "Lateral Entry", "Transfer"] // Admission modes
-  const motherTongues = ["Tamil", "Telugu", "Malayalam", "Kannada", "Hindi", "English"]
+  let nameIndex: number
+  let dateOfBirth: string
 
-  const selectedName = names[studentNumber % names.length]
-  const selectedDept = departments[studentNumber % departments.length]
+  if (specificMappings[registrationNumber]) {
+    nameIndex = specificMappings[registrationNumber].nameIndex
+    dateOfBirth = specificMappings[registrationNumber].birthDate
+  } else {
+    // Use modulo to cycle through names if number is larger than array
+    nameIndex = (studentNumber - 1) % STUDENT_NAMES.length
+    // Generate birth date based on student number for consistency
+    const birthYear = 2005 - Math.floor((studentNumber - 1) / 10) // 2005, 2004, 2003, etc.
+    const birthMonth = ((studentNumber - 1) % 12) + 1 // 1-12
+    const birthDay = ((studentNumber - 1) % 28) + 1 // 1-28 to avoid invalid dates
+    dateOfBirth = `${birthYear}-${String(birthMonth).padStart(2, "0")}-${String(birthDay).padStart(2, "0")}`
+  }
 
-  // Generate year (1-4) and corresponding semester
-  const year = Math.min(4, Math.floor(studentNumber / 20) + 1) // 1-4
+  const selectedStudent = STUDENT_NAMES[nameIndex]
+  const selectedName = selectedStudent.name
+  const gender = selectedStudent.gender
+
+  const deptIndex = generateConsistentRandom(registrationNumber, 2, DEPARTMENTS.length)
+  const selectedDept = DEPARTMENTS[deptIndex]
+
+  // Determine admission mode first (affects year calculation)
+  const modeIndex = generateConsistentRandom(registrationNumber, 3, 10)
+  let mode: "Regular" | "Lateral Entry" | "Transfer"
+  let startYear: number
+  let currentYear: number
+
+  if (modeIndex < 7) {
+    mode = "Regular"
+    startYear = 1
+    currentYear = Math.min(4, Math.floor(studentNumber / 15) + 1) // 1-4
+  } else if (modeIndex < 9) {
+    mode = "Lateral Entry"
+    startYear = 2 // Lateral entry starts from 2nd year
+    currentYear = Math.min(4, startYear + Math.floor(studentNumber / 20)) // 2-4
+  } else {
+    mode = "Transfer"
+    startYear = Math.min(3, Math.floor(studentNumber / 25) + 2) // 2-3
+    currentYear = Math.min(4, startYear + Math.floor(studentNumber / 30)) // 2-4
+  }
+
+  // Calculate semester based on year
   const semesterInYear = (studentNumber % 2) + 1 // 1 or 2
-  const semester = (year - 1) * 2 + semesterInYear // 1-8
+  const semester = (currentYear - 1) * 2 + semesterInYear // 1-8
+
+  // Generate state and related location data
+  const stateKeys = Object.keys(STATES_DATA)
+  const stateIndex = generateConsistentRandom(registrationNumber, 4, stateKeys.length)
+  const selectedState = stateKeys[stateIndex]
+  const stateData = STATES_DATA[selectedState as keyof typeof STATES_DATA]
+
+  const districtIndex = generateConsistentRandom(registrationNumber, 5, stateData.districts.length)
+  const selectedDistrict = stateData.districts[districtIndex]
+
+  // Generate academic year based on current year
+  const currentDate = new Date()
+  const currentAcademicYear = currentDate.getFullYear()
+  let academicYear: string
+  let batch: string
+
+  if (mode === "Regular") {
+    const admissionYear = currentAcademicYear - (currentYear - 1)
+    batch = `${admissionYear}-${admissionYear + 4}`
+    academicYear = `${currentAcademicYear}-${(currentAcademicYear + 1).toString().slice(-2)}`
+  } else if (mode === "Lateral Entry") {
+    const admissionYear = currentAcademicYear - (currentYear - 2)
+    batch = `${admissionYear}-${admissionYear + 3}` // 3 years for lateral entry
+    academicYear = `${currentAcademicYear}-${(currentAcademicYear + 1).toString().slice(-2)}`
+  } else {
+    const admissionYear = currentAcademicYear - (currentYear - startYear)
+    batch = `${admissionYear}-${admissionYear + (5 - startYear)}`
+    academicYear = `${currentAcademicYear}-${(currentAcademicYear + 1).toString().slice(-2)}`
+  }
+
+  const communityIndex = generateConsistentRandom(registrationNumber, 7, 5)
+  const communities = ["OC", "BC", "MBC", "SC", "ST"]
+  const community = communities[communityIndex]
+
+  const religionIndex = generateConsistentRandom(registrationNumber, 8, 5)
+  const religions = ["Hindu", "Christian", "Muslim", "Sikh", "Buddhist"]
+  const religion = religions[religionIndex]
+
+  const subCasteIndex = generateConsistentRandom(registrationNumber, 9, 8)
+  const subCastes = ["Vanniyar", "Thevar", "Naidu", "Chettiar", "Gounder", "Mudaliar", "Pillai", "Reddy"]
+  const subCaste = subCastes[subCasteIndex]
+
+  const bloodGroupIndex = generateConsistentRandom(registrationNumber, 10, 8)
+  const bloodGroups = ["A+", "B+", "O+", "AB+", "A-", "B-", "O-", "AB-"]
+  const bloodGroup = bloodGroups[bloodGroupIndex]
+
+  // Generate admission date based on mode and year
+  let admissionDate: string
+  if (mode === "Regular") {
+    const admissionYear = currentAcademicYear - (currentYear - 1)
+    admissionDate = `${admissionYear}-07-${String((studentNumber % 30) + 1).padStart(2, "0")}`
+  } else if (mode === "Lateral Entry") {
+    const admissionYear = currentAcademicYear - (currentYear - 2)
+    admissionDate = `${admissionYear}-07-${String((studentNumber % 30) + 1).padStart(2, "0")}`
+  } else {
+    const admissionYear = currentAcademicYear - (currentYear - startYear)
+    admissionDate = `${admissionYear}-01-${String((studentNumber % 30) + 1).padStart(2, "0")}`
+  }
+
+  const occupationIndex = generateConsistentRandom(registrationNumber, 11, 5)
+  const occupations = ["Engineer", "Doctor", "Teacher", "Business", "Government Employee"]
+  const fatherOccupation = occupations[occupationIndex]
+
+  const motherOccupationIndex = generateConsistentRandom(registrationNumber, 12, 5)
+  const motherOccupations = ["Homemaker", "Teacher", "Nurse", "Business", "Government Employee"]
+  const motherOccupation = motherOccupations[motherOccupationIndex]
 
   return {
     registrationNumber,
@@ -250,55 +487,48 @@ export function getStudentData(registrationNumber: string): Student {
     rollNumber: `${registrationNumber.slice(-4)}`,
     email: `${registrationNumber.toLowerCase()}@licet.ac.in`,
     department: selectedDept,
-    course: courses[studentNumber % courses.length],
-    year: year,
+    course: `B.E ${selectedDept}`,
+    year: currentYear,
     semester: semester,
     section: String.fromCharCode(65 + (studentNumber % 3)), // A, B, C
-    batch: `2020-2024`,
-    academicYear: `2024-25`,
+    batch: batch,
+    academicYear: academicYear,
     phoneNumber: `+91 ${9000000000 + studentNumber}`,
-    address: `${studentNumber} Main Street, Chennai, Tamil Nadu`,
-    parentName: `Parent of ${selectedName}`,
+    address: `${studentNumber} Main Street, ${selectedDistrict}, ${selectedState}`,
+    parentName: `${selectedName.split(" ")[0]} Father`,
     parentPhone: `+91 ${8000000000 + studentNumber}`,
-    bloodGroup: ["A+", "B+", "O+", "AB+", "A-", "B-", "O-", "AB-"][studentNumber % 8],
-    dateOfBirth: `${1998 + (studentNumber % 5)}-${String((studentNumber % 12) + 1).padStart(2, "0")}-${String((studentNumber % 28) + 1).padStart(2, "0")}`,
-    admissionDate: `2020-07-${String((studentNumber % 30) + 1).padStart(2, "0")}`,
-    gender: genders[studentNumber % 2],
-    fatherName: `Father of ${selectedName}`,
-    motherName: `Mother of ${selectedName}`,
-    fatherOccupation: ["Engineer", "Doctor", "Teacher", "Business", "Government Employee"][studentNumber % 5],
-    motherOccupation: ["Homemaker", "Teacher", "Nurse", "Business", "Government Employee"][studentNumber % 5],
+    bloodGroup: bloodGroup,
+    dateOfBirth: dateOfBirth,
+    admissionDate: admissionDate,
+    gender: gender, // Now properly assigned based on name
+    fatherName: `${selectedName.split(" ")[0]} Father`,
+    motherName: `${selectedName.split(" ")[0]} Mother`,
+    fatherOccupation: fatherOccupation,
+    motherOccupation: motherOccupation,
     annualIncome: `₹${((studentNumber % 10) + 3) * 100000}`,
-    residentialAddress: `${studentNumber} Residential Street, ${districts[studentNumber % districts.length]}, Tamil Nadu - ${600000 + studentNumber}`,
+    residentialAddress: `${studentNumber} Residential Street, ${selectedDistrict}, ${selectedState} - ${600000 + studentNumber}`,
     studentContactNo: `+91 ${9000000000 + studentNumber}`,
     studentEmail: `${registrationNumber.toLowerCase()}@licet.ac.in`,
     parentContactNo: `+91 ${8000000000 + studentNumber}`,
     parentEmail: `parent.${registrationNumber.toLowerCase()}@gmail.com`,
-    community: communities[studentNumber % communities.length],
+    community: community,
     nationality: "Indian",
-    religion: religions[studentNumber % religions.length],
+    religion: religion,
     hosteller: studentNumber % 3 === 0 ? "Yes" : "No",
-    district: districts[studentNumber % districts.length],
-    // New comprehensive fields
-    // Mode of admission
-    mode: modes[studentNumber % modes.length] as "Regular" | "Lateral Entry" | "Transfer",
-    // HSC (Higher Secondary Certificate) school information
+    district: selectedDistrict,
+    mode: mode,
     totalMarks: `${450 + (studentNumber % 50)}`,
     overallPercentage: `${85 + (studentNumber % 15)}.${studentNumber % 10}%`,
     cutoffMarks: `${180 + (studentNumber % 20)}`,
-    dateOfJoining: `2020-07-${String((studentNumber % 30) + 1).padStart(2, "0")}`,
+    dateOfJoining: admissionDate,
     managementCounseling: studentNumber % 2 === 0 ? "Management" : "Counseling",
     firstGraduate: studentNumber % 4 === 0 ? "Yes" : "No",
-    state: states[studentNumber % states.length],
-    catholicParish:
-      religions[studentNumber % religions.length] === "Christian"
-        ? `St. ${selectedName.split(" ")[0]} Parish`
-        : undefined,
-    dalitCatholic:
-      religions[studentNumber % religions.length] === "Christian" && studentNumber % 5 === 0 ? "Yes" : "No",
-    subCaste: subCastes[studentNumber % subCastes.length],
-    motherTongue: motherTongues[studentNumber % motherTongues.length],
-    nativePlace: `${districts[studentNumber % districts.length]}, ${states[studentNumber % states.length]}`,
+    state: selectedState,
+    catholicParish: religion === "Christian" ? `St. ${selectedName.split(" ")[0]} Parish` : undefined,
+    dalitCatholic: religion === "Christian" && studentNumber % 5 === 0 ? "Yes" : "No",
+    subCaste: subCaste,
+    motherTongue: stateData.motherTongue,
+    nativePlace: `${selectedDistrict}, ${selectedState}`,
     coCurricularActivities: [
       "School Cricket Team Captain",
       "Science Club Secretary",
@@ -316,8 +546,18 @@ export function getStudentData(registrationNumber: string): Student {
   }
 }
 
+// Get subjects based on department
+function getSubjectsForDepartment(department: string) {
+  return (
+    SUBJECTS_BY_DEPT[department as keyof typeof SUBJECTS_BY_DEPT] ||
+    SUBJECTS_BY_DEPT["Computer Science and Engineering"]
+  )
+}
+
 export function getAttendanceData(registrationNumber: string): AttendanceData {
   const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
+  const studentData = getStudentData(registrationNumber)
+  const subjects = getSubjectsForDepartment(studentData.department)
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
   // Generate realistic weekly schedule with mixed attendance
@@ -337,7 +577,7 @@ export function getAttendanceData(registrationNumber: string): AttendanceData {
 
       periods.push({
         period,
-        subject: SUBJECTS[period % SUBJECTS.length].name,
+        subject: subjects[period % subjects.length].name,
         status,
         type: "class",
       })
@@ -388,7 +628,7 @@ export function getAttendanceData(registrationNumber: string): AttendanceData {
   const mainfilePercentage = totalMainfileHours > 0 ? (presentMainfileHours / totalMainfileHours) * 100 : 0
 
   // Calculate subject-wise attendance using consistent data
-  const subjectAttendance: SubjectAttendance[] = SUBJECTS.map((subject, subjectIndex) => {
+  const subjectAttendance: SubjectAttendance[] = subjects.map((subject, subjectIndex) => {
     let present = 0
     let total = 0
 
@@ -423,6 +663,7 @@ export function getAttendanceData(registrationNumber: string): AttendanceData {
   }
 }
 
+// Keep the old function for backward compatibility but make it use the enhanced data
 export function getInternalMarks(registrationNumber: string): InternalMark[] {
   const enhancedData = getInternalMarksEnhanced(registrationNumber)
 
@@ -452,8 +693,10 @@ export function getInternalMarks(registrationNumber: string): InternalMark[] {
 // MAIN INTERNAL MARKS FUNCTION - This is the primary one to use
 export function getInternalMarksEnhanced(registrationNumber: string): InternalAssessmentData {
   const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
+  const studentData = getStudentData(registrationNumber)
+  const subjects = getSubjectsForDepartment(studentData.department)
 
-  const subjects = SUBJECTS.map((subject, index) => {
+  const subjectMarks = subjects.map((subject, index) => {
     // Generate Upload 1 marks
     const upload1ConceptTest = Math.min(30, 20 + ((studentNumber + index) % 10))
     const upload1Cat = Math.min(60, 40 + ((studentNumber + index * 2) % 20))
@@ -499,13 +742,14 @@ export function getInternalMarksEnhanced(registrationNumber: string): InternalAs
     }
   })
 
-  const overallAverage = subjects.reduce((acc, subject) => acc + subject.finalMarks, 0) / subjects.length
+  const overallAverage = subjectMarks.reduce((acc, subject) => acc + subject.finalMarks, 0) / subjectMarks.length
 
   return {
-    subjects,
+    subjects: subjectMarks,
     overallAverage,
   }
 }
+
 export function getAttendanceRecords(registrationNumber: string): AttendanceRecord[] {
   const attendanceData = getAttendanceData(registrationNumber)
 
@@ -547,7 +791,6 @@ export function getAchievements(registrationNumber: string): Achievement[] {
     id: `ach_${index + 1}`,
     ...achievement,
     date: `2024-${String(((studentNumber + index) % 12) + 1).padStart(2, "0")}-${String(((studentNumber + index) % 28) + 1).padStart(2, "0")}`,
-    level: "College", // or any appropriate default value
   }))
 }
 
@@ -570,52 +813,17 @@ export function getLibraryBooks(registrationNumber: string): LibraryBook[] {
   }))
 }
 
-export function getCourses(): Course[] {
-  return [
-    {
-      code: "CS301",
-      name: "Data Structures",
-      credits: 4,
-      instructor: "Dr. Smith",
-      schedule: "Mon, Wed, Fri 9:00-10:00",
-      room: "CS-101",
-      type: "Theory",
-    },
-    {
-      code: "CS302",
-      name: "Database Management",
-      credits: 3,
-      instructor: "Prof. Johnson",
-      schedule: "Tue, Thu 10:00-11:30",
-      room: "CS-102",
-      type: "Theory",
-    },
-    {
-      code: "CS303",
-      name: "Computer Networks",
-      credits: 3,
-      instructor: "Dr. Williams",
-      schedule: "Mon, Wed 2:00-3:30",
-      room: "CS-103",
-      type: "Theory",
-    },
-    {
-      code: "CS304L",
-      name: "OS Lab",
-      credits: 2,
-      instructor: "Prof. Brown",
-      schedule: "Fri 2:00-5:00",
-      room: "CS-Lab1",
-      type: "Lab",
-    },
-    {
-      code: "CS305",
-      name: "Software Engineering",
-      credits: 3,
-      instructor: "Dr. Davis",
-      schedule: "Tue, Thu 2:00-3:30",
-      room: "CS-104",
-      type: "Theory",
-    },
-  ]
+export function getCourses(registrationNumber: string): Course[] {
+  const studentData = getStudentData(registrationNumber)
+  const subjects = getSubjectsForDepartment(studentData.department)
+
+  return subjects.map((subject, index) => ({
+    code: subject.code,
+    name: subject.name,
+    credits: 3 + (index % 2), // 3 or 4 credits
+    instructor: `Dr. ${["Smith", "Johnson", "Williams", "Brown", "Davis"][index % 5]}`,
+    schedule: `${["Mon, Wed", "Tue, Thu", "Mon, Fri", "Wed, Fri", "Tue, Wed"][index % 5]} ${9 + index}:00-${10 + index}:00`,
+    room: `${subject.code.slice(0, 2)}-${101 + index}`,
+    type: index % 3 === 2 ? "Lab" : "Theory",
+  }))
 }
