@@ -143,12 +143,6 @@ export default function ArrearDetails({ registrationNumber }: ArrearDetailsProps
     }
   }
 
-  const getSemesterStatus = (semester: number) => {
-    const currentSem = 5 // Assuming current semester
-    if (semester < currentSem) return "Completed"
-    if (semester === currentSem) return "Current"
-    return "Upcoming"
-  }
 
   return (
     <div className="space-y-6">
@@ -280,7 +274,6 @@ export default function ArrearDetails({ registrationNumber }: ArrearDetailsProps
                 <TabsList className="grid w-full grid-cols-8 rounded-none border-b bg-slate-50">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => {
                     const semesterData = semesterArrears.find((s) => s.semester === sem)
-                    const status = getSemesterStatus(sem)
                     const hasData = !!semesterData
 
                     return (
