@@ -11,7 +11,7 @@ interface SemesterMarksProps {
   registrationNumber: string
 }
 
-export default function SemesterMarks({}: SemesterMarksProps) {
+export default function SemesterMarks({ }: SemesterMarksProps) {
   // Mock semester marks data - enhanced with more realistic data
   const semesterMarks = [
     {
@@ -138,7 +138,7 @@ export default function SemesterMarks({}: SemesterMarksProps) {
       ],
       gpa: 9.1,
       cgpa: 8.6,
-      status: "Current",
+      status: "Recently Written",
     },
     {
       semester: 4,
@@ -176,12 +176,12 @@ export default function SemesterMarks({}: SemesterMarksProps) {
       ],
       gpa: 0,
       cgpa: 8.6,
-      status: "Upcoming",
+      status: "Current",
     },
   ]
 
   const completedSemesters = semesterMarks.filter((sem) => sem.status === "Completed")
-  const currentSemester = semesterMarks.find((sem) => sem.status === "Current")
+  const currentSemester = semesterMarks.find((sem) => sem.status === "Recently Written")
   const latestCGPA = currentSemester?.cgpa || completedSemesters[completedSemesters.length - 1]?.cgpa || 0
   const totalCreditsCompleted = completedSemesters.reduce(
     (acc, sem) => acc + sem.subjects.reduce((subAcc, sub) => subAcc + sub.credits, 0),
@@ -215,10 +215,10 @@ export default function SemesterMarks({}: SemesterMarksProps) {
     switch (status) {
       case "Completed":
         return "bg-green-100 text-green-800 border-green-200"
-      case "Current":
+      case "Recently Written":
         return "bg-blue-100 text-blue-800 border-blue-200"
-      case "Upcoming":
-        return "bg-slate-100 text-slate-600 border-slate-200"
+      case "Current":
+        return "bg-orange-100 text-orange-800 border-orange-200"
       default:
         return "bg-slate-100 text-slate-800 border-slate-200"
     }
@@ -387,7 +387,7 @@ export default function SemesterMarks({}: SemesterMarksProps) {
                         </p>
                       </div>
                       <div className="flex items-center gap-6">
-                        {semester.status !== "Upcoming" && (
+                        {semester.status !== "Current" && (
                           <>
                             <div className="text-center">
                               <div className="text-2xl font-bold text-blue-600">{semester.gpa.toFixed(2)}</div>
@@ -467,7 +467,7 @@ export default function SemesterMarks({}: SemesterMarksProps) {
                     </div>
 
                     {/* Semester Summary */}
-                    {semester.status !== "Upcoming" && (
+                    {semester.status !== "Current" && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
