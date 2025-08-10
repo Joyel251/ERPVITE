@@ -50,7 +50,7 @@ interface StudentPortalProps {
   onLogout: () => void
 }
 
-type ActiveSection =
+export type ActiveSection =
   | "dashboard"
   | "profile"
   | "internal-marks"
@@ -61,6 +61,8 @@ type ActiveSection =
   | "semester-marks"
   | "arrears"
   | "announcements"
+  | "assignments"
+  | "exams"
 
 export default function StudentPortal({ registrationNumber, onLogout }: StudentPortalProps) {
   const [student, setStudent] = useState<Student | null>(null)
@@ -202,8 +204,14 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
         return <ArrearDetails registrationNumber={registrationNumber} />
       case "announcements":
         return <AnnouncementsSection />
+      case "assignments":
+        // For now, redirect to dashboard. In the future, add an actual AssignmentsSection component
+        return <Dashboard student={student} onSectionChange={handleSectionChange} />
+      case "exams":
+        // For now, redirect to dashboard. In the future, add an actual ExamsScheduleSection component
+        return <Dashboard student={student} onSectionChange={handleSectionChange} />
       default:
-        return <Dashboard student={student} onSectionChange={(section) => handleSectionChange(section as ActiveSection)} />
+        return <Dashboard student={student} onSectionChange={handleSectionChange} />
     }
   }
 
@@ -625,6 +633,8 @@ function Header({ student, activeSection }: { student: Student; activeSection: A
       "semester-marks": "Semester Results",
       arrears: "Arrear Management",
       announcements: "College Announcements",
+      assignments: "Course Assignments",
+      exams: "Examination Schedule"
     }
     return titles[section] || "Student Portal"
   }
