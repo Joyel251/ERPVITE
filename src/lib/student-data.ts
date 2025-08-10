@@ -100,13 +100,13 @@ export interface AttendanceRecord {
 }
 
 export interface Achievement {
+  level: string
   id: string
   title: string
   description: string
   date: string
   category: "Academic" | "Sports" | "Cultural" | "Technical"
   certificate?: string
-  level?: string
 }
 
 export interface LibraryBook {
@@ -154,6 +154,8 @@ export interface ArrearDetail {
   examDate: string
   status: "Pending" | "Cleared"
   attempts: number
+  clearedInSemester?: number
+  clearedGrade?: string
 }
 
 // New attendance interfaces
@@ -364,7 +366,11 @@ export function getStudentData(registrationNumber: string): Student {
     "311123104001": { nameIndex: 0, birthDate: "2005-01-01" }, // Aarav Kumar
     "311123104002": { nameIndex: 1, birthDate: "2005-02-02" }, // Vivaan Singh
     "311123104003": { nameIndex: 2, birthDate: "2005-03-03" }, // Aditya Sharma
+    "311123104007": { nameIndex: 7, birthDate: "2005-01-07" }, // Ayaan Khan (has arrears)
+    "311123104014": { nameIndex: 13, birthDate: "2005-02-14" }, // Aadhya Nambiar (has arrears)
     "311123104015": { nameIndex: 14, birthDate: "2005-03-15" }, // Kavya Shetty
+    "311123104021": { nameIndex: 20, birthDate: "2005-03-21" }, // Rohan Joshi (has arrears)
+    "311123104028": { nameIndex: 27, birthDate: "2005-04-28" }, // Divya Nair (has arrears)
     "311123104031": { nameIndex: 30, birthDate: "2005-07-04" }, // Joyelimmanuel
   }
 
@@ -791,6 +797,7 @@ export function getAchievements(registrationNumber: string): Achievement[] {
     id: `ach_${index + 1}`,
     ...achievement,
     date: `2024-${String(((studentNumber + index) % 12) + 1).padStart(2, "0")}-${String(((studentNumber + index) % 28) + 1).padStart(2, "0")}`,
+    level: "College", // or set dynamically if needed
   }))
 }
 
@@ -826,4 +833,130 @@ export function getCourses(registrationNumber: string): Course[] {
     room: `${subject.code.slice(0, 2)}-${101 + index}`,
     type: index % 3 === 2 ? "Lab" : "Theory",
   }))
+}
+
+export function getArrearDetails(registrationNumber: string): ArrearDetail[] {
+  const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
+  const studentData = getStudentData(registrationNumber)
+  const subjects = getSubjectsForDepartment(studentData.department)
+
+  // Check if student has arrears based on student number
+  const hasArrears = studentNumber % 7 === 0
+
+  if (!hasArrears) {
+    return []
+  }
+
+  const arrears: ArrearDetail[] = []
+  const grades = ["A+", "A", "B+", "B", "C"]
+
+  // Generate arrears for different semesters based on student number patterns
+  const semesterPatterns = [
+    { semester: 1, condition: studentNumber % 14 === 0 },
+    { semester: 2, condition: studentNumber % 21 === 0 },
+    { semester: 3, condition: studentNumber % 28 === 0 },
+    { semester: 4, condition: studentNumber % 35 === 0 },
+    { semester: 5, condition: studentNumber % 42 === 0 },
+  ]
+
+  semesterPatterns.forEach(({ semester, condition }) => {
+    if (condition) {
+      // Add 1-2 subjects as arrears for this semester
+      const numArrears = (studentNumber % 2) + 1
+
+      for (let i = 0; i < numArrears; i++) {
+        const subject = subjects[i % subjects.length]
+        const isCleared = (studentNumber + semester + i) % 3 === 0 // Some arrears are cleared
+
+        const arrear: ArrearDetail = {
+          semester,
+          subjectCode: subject.code,
+          subjectName: subject.name,
+          credits: 3 + (i % 2),
+          examDate: isCleared ? `2024-0${Math.min(semester + 2, 9)}-15` : `2025-0${Math.min(semester + 1, 9)}-15`,
+          status: isCleared ? "Cleared" : "Pending",
+          attempts: isCleared ? ((studentNumber + i) % 3) + 1 : ((studentNumber + i) % 2) + 1,
+        }
+
+        // Add clearance details if cleared
+        if (isCleared) {
+          arrear.clearedInSemester = Math.min(semester + ((studentNumber + i) % 3) + 1, 8)
+          arrear.clearedGrade = grades[(studentNumber + semester + i) % grades.length]
+        }
+
+        arrears.push(arrear)
+      }
+    }
+  })
+
+  return arrears
+}
+
+export function getSemesterMarks(registrationNumber: string): SemesterMark[] {
+  const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
+  const studentData = getStudentData(registrationNumber)
+  const subjects = getSubjectsForDepartment(studentData.department)
+
+  const semesters: SemesterMark[] = []
+  const grades = ["A+", "A", "B+", "B", "C", "-"]
+  const gradePoints = [10, 9, 8, 7, 6, 0]
+
+  // Generate marks for completed semesters (based on current semester)
+  const completedSemesters = Math.min(studentData.semester, 8)
+
+  for (let sem = 1; sem <= completedSemesters; sem++) {
+    const semesterSubjects = subjects.map((subject, index) => {
+      // Generate consistent grades based on student number and semester
+      const gradeIndex = (studentNumber + sem + index) % grades.length
+      const grade = grades[gradeIndex]
+      const gradePoint = gradePoints[gradeIndex]
+
+      // Generate marks (not shown in UI but used for calculations)
+      const internal = Math.min(50, 35 + ((studentNumber + sem + index) % 15))
+      const external = grade === "-" ? 0 : Math.min(50, 25 + ((studentNumber + sem + index * 2) % 25))
+      const total = internal + external
+
+      return {
+        code: subject.code,
+        name: subject.name,
+        credits: 3 + (index % 2),
+        internalMarks: internal,
+        externalMarks: external,
+        totalMarks: total,
+        grade,
+        gradePoints: gradePoint,
+      }
+    })
+
+    // Calculate SGPA
+    const totalCredits = semesterSubjects.reduce((sum, subject) => sum + subject.credits, 0)
+    const totalGradePoints = semesterSubjects.reduce((sum, subject) => sum + subject.gradePoints * subject.credits, 0)
+    const sgpa = totalCredits > 0 ? totalGradePoints / totalCredits : 0
+
+    // Calculate CGPA (cumulative up to this semester)
+    let cumulativeCredits = 0
+    let cumulativeGradePoints = 0
+
+    for (let prevSem = 1; prevSem <= sem; prevSem++) {
+      subjects.forEach((subject, index) => {
+        const credits = 3 + (index % 2)
+        const gradeIndex = (studentNumber + prevSem + index) % grades.length
+        const gradePoint = gradePoints[gradeIndex]
+
+        cumulativeCredits += credits
+        cumulativeGradePoints += gradePoint * credits
+      })
+    }
+
+    const cgpa = cumulativeCredits > 0 ? cumulativeGradePoints / cumulativeCredits : 0
+
+    semesters.push({
+      semester: sem,
+      subjects: semesterSubjects,
+      sgpa: Math.round(sgpa * 100) / 100,
+      cgpa: Math.round(cgpa * 100) / 100,
+    })
+  }
+
+  return semesters
 }
