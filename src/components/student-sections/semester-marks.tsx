@@ -361,9 +361,19 @@ export default function SemesterMarks({ }: SemesterMarksProps) {
                     className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium transition-all duration-200"
                   >
                     <div className="flex items-center gap-2">
-                      <span>Semester {semester.semester}</span>
+                      <span className="hidden sm:inline">Semester {semester.semester}</span>
+                      <span className="sm:hidden">Sem {semester.semester}</span>
                       <Badge className={`text-xs px-2 py-0.5 ${getStatusColor(semester.status)}`}>
-                        {semester.status}
+                        <span className="hidden sm:inline">{semester.status}</span>
+                        <span className="sm:hidden">
+                          {semester.status === "Completed"
+                            ? "✓"
+                            : semester.status === "Recently Written"
+                              ? "📝"
+                              : semester.status === "Current"
+                                ? "📚"
+                                : semester.status}
+                        </span>
                       </Badge>
                     </div>
                   </TabsTrigger>
@@ -378,7 +388,7 @@ export default function SemesterMarks({ }: SemesterMarksProps) {
                     transition={{ duration: 0.3 }}
                   >
                     {/* Semester Header */}
-                    <div className="flex items-center justify-between mb-6 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200">
                       <div>
                         <h3 className="text-xl font-bold text-slate-800">Semester {semester.semester}</h3>
                         <p className="text-slate-600 text-sm">
@@ -386,18 +396,22 @@ export default function SemesterMarks({ }: SemesterMarksProps) {
                           {semester.subjects.reduce((acc, sub) => acc + sub.credits, 0)} credits
                         </p>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-4 sm:gap-6 mt-4 sm:mt-0">
                         {semester.status !== "Current" && (
                           <>
                             <div className="text-center">
-                              <div className="text-2xl font-bold text-blue-600">{semester.gpa.toFixed(2)}</div>
+                              <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                                {semester.gpa.toFixed(2)}
+                              </div>
                               <div className="text-xs text-slate-500 font-medium">GPA</div>
-                              <Progress value={getGPAProgress(semester.gpa)} className="h-1 mt-1 w-16" />
+                              <Progress value={getGPAProgress(semester.gpa)} className="h-1 mt-1 w-12 sm:w-16" />
                             </div>
                             <div className="text-center">
-                              <div className="text-2xl font-bold text-green-600">{semester.cgpa.toFixed(2)}</div>
+                              <div className="text-xl sm:text-2xl font-bold text-green-600">
+                                {semester.cgpa.toFixed(2)}
+                              </div>
                               <div className="text-xs text-slate-500 font-medium">CGPA</div>
-                              <Progress value={getGPAProgress(semester.cgpa)} className="h-1 mt-1 w-16" />
+                              <Progress value={getGPAProgress(semester.cgpa)} className="h-1 mt-1 w-12 sm:w-16" />
                             </div>
                           </>
                         )}
