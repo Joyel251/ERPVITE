@@ -6,8 +6,9 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { GraduationCap, Users, BookOpen, ArrowLeft, Loader2 } from "lucide-react"
+import { GraduationCap, Users, BookOpen, ArrowLeft, Loader2, AlertCircle } from "lucide-react"
 import { useState } from "react"
+import { validateRegistrationNumber, validateLogin } from '../lib/student-data'
 
 type LoginType = "student" | "faculty" | "parent" | null
 
@@ -25,24 +26,89 @@ export default function LoginForm({ selectedLogin, onBack, onLogin }: LoginFormP
     password: "",
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [errors, setErrors] = useState({
+    registrationNumber: "",
+    password: "",
+  })
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev : any) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    // Clear errors when user starts typing
+    if (errors[field as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {
+      registrationNumber: "",
+      password: "",
+    }
+
+    if (selectedLogin === "student") {
+      // Validate registration number format
+      if (!formData.registrationNumber) {
+        newErrors.registrationNumber = "Registration number is required"
+      } else if (!validateRegistrationNumber(formData.registrationNumber)) {
+        newErrors.registrationNumber = "Invalid format. Must be 12 digits starting with 3111 (e.g., 311123104057)"
+      }
+
+      // Validate password
+      if (!formData.password) {
+        newErrors.password = "Password is required"
+      }
+    } else {
+      // For faculty and parent
+      if (!formData.email) {
+        newErrors.registrationNumber = "Email is required"
+      }
+      if (!formData.password) {
+        newErrors.password = "Password is required"
+      }
+    }
+
+    setErrors(newErrors)
+    return !newErrors.registrationNumber && !newErrors.password
   }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // Simulate successful login
-    if (selectedLogin === "student" && formData.registrationNumber) {
-      onLogin(formData.registrationNumber)
-    } else if ((selectedLogin === "faculty" || selectedLogin === "parent") && formData.email) {
-      onLogin(formData.email)
+    if (!validateForm()) {
+      return
     }
 
-    setIsLoading(false)
+    setIsLoading(true)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      if (selectedLogin === "student") {
+        // Validate student login with password check
+        const isValidLogin = validateLogin(formData.registrationNumber, formData.password)
+
+        if (!isValidLogin) {
+          setErrors({
+            registrationNumber: "",
+            password: "Invalid password. Format: First 4 letters of name (CAPS) + DDMMYY of birth date",
+          })
+          setIsLoading(false)
+          return
+        }
+
+        onLogin(formData.registrationNumber)
+      } else if ((selectedLogin === "faculty" || selectedLogin === "parent") && formData.email) {
+        onLogin(formData.email)
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setErrors({
+        registrationNumber: "",
+        password: "Login failed. Please try again.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const loginOptions = [
@@ -163,13 +229,26 @@ export default function LoginForm({ selectedLogin, onBack, onLogin }: LoginFormP
                 <Input
                   id="registration"
                   type="text"
-                  placeholder="Enter your registration number"
+                  placeholder="e.g., 311123104057"
                   value={formData.registrationNumber}
                   onChange={(e) => handleInputChange("registrationNumber", e.target.value)}
                   required
                   disabled={isLoading}
-                  className="h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-500 border font-medium"
+                  className={`h-11 transition-all duration-200 focus:ring-2 focus:ring-blue-500 border font-medium ${
+                    errors.registrationNumber ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
+                  maxLength={12}
                 />
+                {errors.registrationNumber && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center space-x-1 text-red-600 text-sm"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.registrationNumber}</span>
+                  </motion.div>
+                )}
               </motion.div>
             ) : (
               <motion.div
@@ -211,16 +290,31 @@ export default function LoginForm({ selectedLogin, onBack, onLogin }: LoginFormP
               <Label htmlFor="password" className="text-slate-700 font-medium">
                 Password
               </Label>
+              {selectedLogin === "student" && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                  <div className="text-sm text-blue-800 font-medium mb-1">Password Format:</div>
+                  <div className="text-sm text-blue-700">
+                    <span className="font-semibold">First 4 letters of name (CAPS)</span> +{" "}
+                    <span className="font-semibold">DDMMYY</span> of birth date
+                  </div>
+                  <div className="text-xs text-blue-600 mt-1">
+                    Example: "Joyelimmanuel" born "04/07/2005" →{" "}
+                    <span className="font-mono bg-blue-100 px-1 rounded">JOYE040705</span>
+                  </div>
+                </div>
+              )}
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={selectedLogin === "student" ? "e.g., JOYE040705" : "Enter your password"}
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   required
                   disabled={isLoading}
-                  className="h-11 pr-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500 border font-medium"
+                  className={`h-11 pr-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500 border font-medium ${
+                    errors.password ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
                 />
                 <button
                   type="button"
@@ -284,6 +378,16 @@ export default function LoginForm({ selectedLogin, onBack, onLogin }: LoginFormP
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center space-x-1 text-red-600 text-sm"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  <span>{errors.password}</span>
+                </motion.div>
+              )}
             </motion.div>
 
             <motion.div
