@@ -43,7 +43,6 @@ import LibraryBooks from './student-sections/library-books'
 import SemesterMarks from './student-sections/semester-marks'
 import ArrearDetails from './student-sections/arrear-details'
 import Dashboard from './student-sections/dashboard'
-import SettingsSection from './student-sections/settings-section'
 import AnnouncementsSection from './student-sections/announcements-section'
 import { useEffect, useRef, useState } from "react"
 
@@ -213,8 +212,6 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
         return <ArrearDetails registrationNumber={registrationNumber} />
       case "announcements":
         return <AnnouncementsSection />
-      case "settings":
-        return <SettingsSection />
       default:
         return <Dashboard student={student} />
     }
