@@ -20,7 +20,6 @@ import {
   LogOut,
   Home,
   Clock,
-  Settings,
   User,
   FileText,
   Calendar,
@@ -62,7 +61,6 @@ type ActiveSection =
   | "semester-marks"
   | "arrears"
   | "announcements"
-  | "settings"
 
 export default function StudentPortal({ registrationNumber, onLogout }: StudentPortalProps) {
   const [student, setStudent] = useState<Student | null>(null)
@@ -177,15 +175,7 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
       gradient: "from-red-500 to-red-600",
       hoverColor: "hover:bg-red-100",
     },
-    {
-      id: "settings",
-      label: "Account Settings",
-      icon: Settings,
-      category: "system",
-      notifications: 0,
-      gradient: "from-slate-500 to-slate-600",
-      hoverColor: "hover:bg-slate-100",
-    },
+   
   ]
 
   const renderActiveSection = () => {
@@ -193,7 +183,7 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
 
     switch (activeSection) {
       case "dashboard":
-        return <Dashboard student={student} />
+        return <Dashboard student={student} onSectionChange={handleSectionChange} />
       case "profile":
         return <StudentProfile student={student} />
       case "internal-marks":
@@ -213,7 +203,7 @@ export default function StudentPortal({ registrationNumber, onLogout }: StudentP
       case "announcements":
         return <AnnouncementsSection />
       default:
-        return <Dashboard student={student} />
+        return <Dashboard student={student} onSectionChange={(section) => handleSectionChange(section as ActiveSection)} />
     }
   }
 
@@ -635,7 +625,6 @@ function Header({ student, activeSection }: { student: Student; activeSection: A
       "semester-marks": "Semester Results",
       arrears: "Arrear Management",
       announcements: "College Announcements",
-      settings: "Account Settings",
     }
     return titles[section] || "Student Portal"
   }
