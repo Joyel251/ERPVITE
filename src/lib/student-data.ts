@@ -66,6 +66,36 @@ export interface InternalMark {
   percentage: number
 }
 
+// Enhanced internal assessment data interface
+export interface InternalAssessmentSubject {
+  subject: string
+  subjectCode: string
+  upload1: {
+    conceptTest: number
+    cat: number
+    testTotal: number
+    testConverted: number
+    assignment: number
+    uploadTotal: number
+    finalMarks: number
+  }
+  upload2: {
+    conceptTest: number
+    cat: number
+    testTotal: number
+    testConverted: number
+    assignment: number
+    uploadTotal: number
+    finalMarks: number
+  }
+  finalMarks: number
+}
+
+export interface InternalAssessmentData {
+  subjects: InternalAssessmentSubject[]
+  overallAverage: number
+}
+
 export interface AttendanceRecord {
   subject: string
   subjectCode: string
@@ -394,28 +424,88 @@ export function getAttendanceData(registrationNumber: string): AttendanceData {
 }
 
 export function getInternalMarks(registrationNumber: string): InternalMark[] {
-  const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
+  const enhancedData = getInternalMarksEnhanced(registrationNumber)
 
-  return SUBJECTS.map((subject, index) => {
-    const base = 15 + ((studentNumber + index) % 10)
-    const test1 = Math.min(20, base + Math.floor(Math.random() * 5))
-    const test2 = Math.min(20, base + Math.floor(Math.random() * 5))
-    const assignment = Math.min(10, 7 + Math.floor(Math.random() * 3))
+  // Convert enhanced data to old format for backward compatibility
+  return enhancedData.subjects.map((subject) => {
+    // Simulate old test1, test2, assignment structure from the enhanced data
+    const test1 = Math.round((subject.upload1.conceptTest / 30) * 20)
+    const test2 = Math.round((subject.upload2.conceptTest / 30) * 20)
+    const assignment = Math.round(((subject.upload1.assignment + subject.upload2.assignment) / 50) * 10)
     const total = test1 + test2 + assignment
+    const maxMarks = 50
+    const percentage = (total / maxMarks) * 100
 
     return {
-      subject: subject.name,
-      subjectCode: subject.code,
+      subject: subject.subject,
+      subjectCode: subject.subjectCode,
       test1,
       test2,
       assignment,
       total,
-      maxMarks: 50,
-      percentage: (total / 50) * 100,
+      maxMarks,
+      percentage,
     }
   })
 }
 
+// MAIN INTERNAL MARKS FUNCTION - This is the primary one to use
+export function getInternalMarksEnhanced(registrationNumber: string): InternalAssessmentData {
+  const studentNumber = Number.parseInt(registrationNumber.slice(-2)) || 1
+
+  const subjects = SUBJECTS.map((subject, index) => {
+    // Generate Upload 1 marks
+    const upload1ConceptTest = Math.min(30, 20 + ((studentNumber + index) % 10))
+    const upload1Cat = Math.min(60, 40 + ((studentNumber + index * 2) % 20))
+    const upload1TestTotal = upload1ConceptTest + upload1Cat
+    const upload1TestConverted = (upload1TestTotal / 90) * 75
+    const upload1Assignment = Math.min(25, 18 + ((studentNumber + index * 3) % 7))
+    const upload1UploadTotal = upload1TestConverted + upload1Assignment
+    const upload1FinalMarks = (upload1UploadTotal / 100) * 25
+
+    // Generate Upload 2 marks (slightly different pattern)
+    const upload2ConceptTest = Math.min(30, 18 + ((studentNumber + index * 2) % 12))
+    const upload2Cat = Math.min(60, 38 + ((studentNumber + index * 3) % 22))
+    const upload2TestTotal = upload2ConceptTest + upload2Cat
+    const upload2TestConverted = (upload2TestTotal / 90) * 75
+    const upload2Assignment = Math.min(25, 17 + ((studentNumber + index * 4) % 8))
+    const upload2UploadTotal = upload2TestConverted + upload2Assignment
+    const upload2FinalMarks = (upload2UploadTotal / 100) * 25
+
+    const finalMarks = upload1FinalMarks + upload2FinalMarks
+
+    return {
+      subject: subject.name,
+      subjectCode: subject.code,
+      upload1: {
+        conceptTest: upload1ConceptTest,
+        cat: upload1Cat,
+        testTotal: upload1TestTotal,
+        testConverted: upload1TestConverted,
+        assignment: upload1Assignment,
+        uploadTotal: upload1UploadTotal,
+        finalMarks: upload1FinalMarks,
+      },
+      upload2: {
+        conceptTest: upload2ConceptTest,
+        cat: upload2Cat,
+        testTotal: upload2TestTotal,
+        testConverted: upload2TestConverted,
+        assignment: upload2Assignment,
+        uploadTotal: upload2UploadTotal,
+        finalMarks: upload2FinalMarks,
+      },
+      finalMarks,
+    }
+  })
+
+  const overallAverage = subjects.reduce((acc, subject) => acc + subject.finalMarks, 0) / subjects.length
+
+  return {
+    subjects,
+    overallAverage,
+  }
+}
 export function getAttendanceRecords(registrationNumber: string): AttendanceRecord[] {
   const attendanceData = getAttendanceData(registrationNumber)
 
