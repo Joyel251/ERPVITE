@@ -938,7 +938,7 @@ export function getSemesterMarks(registrationNumber: string): SemesterMark[] {
     let cumulativeGradePoints = 0
 
     for (let prevSem = 1; prevSem <= sem; prevSem++) {
-      subjects.forEach((subject, index) => {
+      subjects.forEach((_, index) => {
         const credits = 3 + (index % 2)
         const gradeIndex = (studentNumber + prevSem + index) % grades.length
         const gradePoint = gradePoints[gradeIndex]
